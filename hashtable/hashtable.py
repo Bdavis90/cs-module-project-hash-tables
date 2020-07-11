@@ -6,7 +6,10 @@ class HashTableEntry:
         self.key = key
         self.value = value
         self.next = None
+        self.size = 0
 
+    def __repr__(self):
+        return f'key : {self.key},  value : {self.value}'
 
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
@@ -22,8 +25,11 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
-        self.capacity = MIN_CAPACITY
+        # if self.capacity < MIN_CAPACITY:
+        #     self.capacity = MIN_CAPACITY
 
+        self.size = 0
+        self.capacity = capacity
         self.hash_table = [None] * self.capacity
 
     def get_num_slots(self):
@@ -37,7 +43,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        return self.capacity
 
     def get_load_factor(self):
         """
@@ -46,6 +52,8 @@ class HashTable:
         Implement this.
         """
         # Your code here
+
+        return self.size / self.capacity
 
 
     def fnv1(self, key):
@@ -90,13 +98,31 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        self.size += 1
+        old_capacity = self.capacity
         key_index = self.hash_index(key)
+        node = self.hash_table[key_index]
+        load_factor = self.size / self.capacity
+        if node is None:
+           self.hash_table[key_index] = HashTableEntry(key, value)
+           return
+        else:
+            current = self.hash_table[key_index]
+            prev = current
+            while node is not None:
+                if current.key == key:
+                    print(current, 'current')
+                    current.value = value
+                    return
+                else:
+                    prev = node
+                    node = node.next
+            prev.next = HashTableEntry(key, value)
 
-        self.hash_table[key_index] = value
-
+        if load_factor > 0.7:
+            self.resize(self.capacity * 2)
+        
         return self.hash_table
-
-        print(f'${self.hash_table}')
 
 
 
@@ -111,9 +137,21 @@ class HashTable:
         """
         # Your code here
         key_index = self.hash_index(key)
-            
-        self.hash_table[key_index] = None 
+        node = self.hash_table[key_index]
+        prev = None
 
+        while node != None and node.key != key:
+            prev = node
+            node = node.next
+        if node is None:
+            return None
+        else:
+            result = node.value
+            if prev is None:
+                self.hash_table[key_index] = node.next
+            else:
+                prev.next = prev.next.next
+            return result
 
 
 
@@ -129,6 +167,14 @@ class HashTable:
         # Your code here
 
         key_index = self.hash_index(key)
+        node = self.hash_table[key_index]
+
+        while node != None and node.key != key:
+            node = node.next 
+        if node is None:
+            return None
+        else: 
+            return node.value
 
         return self.hash_table[key_index]
         
@@ -142,9 +188,34 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        self.capacity = new_capacity
+        self.size = 0
+        old_table = self.hash_table
+        self.hash_table = [None] * new_capacity
+
+        for elem in old_table:
+            while elem != None:
+                self.put(elem.key, elem.value)
+                elem = elem.next
+        print(self.hash_table)
 
     def __str__(self):
         return f'${self.hash_table}'
+
+
+h = HashTable(9)
+n = HashTableEntry('hello', 'world')
+h.put('rock', 'Hello World!')
+h.put('rock', 'see you soon!')
+h.put('rock', 'talk to you later!')
+# h.put('kcor', 'goodbye!')
+# h.put('kcor', 'ok go')
+rock = h.get('rock')
+kcor = h.get('kcor')
+
+# print(h.resize(20))
+print(rock, 'rock')
+# print(kcor, 'kcor')
 
 # if __name__ == "__main__":
 #     ht = HashTable(8)
